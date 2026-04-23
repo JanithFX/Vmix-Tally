@@ -1,0 +1,297 @@
+/*
+ * QUICK REFERENCE - TALLY LIGHT FOR VMIX
+ * 
+ * FIRST TIME SETUP:
+ * ─────────────────────────────────────────────────────────────────
+ * 1. Open Arduino IDE → File → Open → Select Tally.ino
+ * 2. Tools → Board → Select "ESP32 Dev Module" (or your board)
+ * 3. Tools → Port → Select your COM port
+ * 4. Click UPLOAD (arrow button)
+ * 5. When done, Serial Monitor shows: [AP] Starting AP mode
+ * 6. On your phone/laptop: Connect to Wi-Fi network "Tally-Config-XXXX"
+ * 7. A popup appears with configuration form
+ * 8. Fill in: SSID, Password, vMix IP (192.168.1.72), Port (8088), API Key
+ * 9. Device reboots and connects
+ * 10. Go to http://<device-ip>/settings to configure LED pins
+ * 
+ * 
+ * AFTER SETUP - NORMAL OPERATION:
+ * ─────────────────────────────────────────────────────────────────
+ * • Device automatically connects to Wi-Fi
+ * • Polls vMix API every 500ms (configurable)
+ * • LED shows current tally status in real-time
+ * • Go to http://<device-ip>/settings anytime to adjust settings
+ * • All settings saved to device storage (persistent)
+ * 
+ * 
+ * LED INDICATORS:
+ * ─────────────────────────────────────────────────────────────────
+ * Green blink (startup)     = Power-on success
+ * Cyan (solid, AP mode)     = Waiting for Wi-Fi setup
+ * Red/Green/Blue (solid)    = Current tally status from vMix
+ * Blue blink                = Wi-Fi disconnected (reconnecting)
+ * Red blink                 = API connection failed
+ * Red blink x3              = Reset button held (returning to setup)
+ * Fade transition           = Color smoothly changing
+ * 
+ * 
+ * RESET DEVICE:
+ * ─────────────────────────────────────────────────────────────────
+ * • Hold RESET BUTTON for 3 seconds
+ * • LED blinks red 3 times
+ * • Device erases Wi-Fi credentials and returns to AP mode
+ * • Reconfigure via captive portal (same as first boot)
+ * 
+ * 
+ * HARDWARE PINS (DEFAULT):
+ * ─────────────────────────────────────────────────────────────────
+ * RED LED      → GPIO 25
+ * GREEN LED    → GPIO 26
+ * BLUE LED     → GPIO 27
+ * RESET BUTTON → GPIO 34
+ * 
+ * Can be changed via Settings page (http://<device-ip>/settings)
+ * 
+ * 
+ * SERIAL DEBUG (115200 baud):
+ * ─────────────────────────────────────────────────────────────────
+ * Tools → Serial Monitor
+ * Baud: 115200
+ * 
+ * Will show:
+ * [WiFi] Connected! IP: 192.168.1.100
+ * [API] Polling: http://192.168.1.72:8088/...
+ * [API] Color updated: #ff8c00 → RGB(255,140,0)
+ * [LED] Fade started...
+ * 
+ * 
+ * SETTINGS PAGE:
+ * ─────────────────────────────────────────────────────────────────
+ * After setup, go to: http://<device-ip>/settings
+ * 
+ * Configure:
+ * • LED Pins (R, G, B GPIO numbers)
+ * • LED Type (common cathode or common anode)
+ * • vMix API IP/Port/Key
+ * • Polling interval (100–5000 ms)
+ * 
+ * Click "Test LED" to verify RGB connection
+ * Click "Save Settings" to persist changes
+ * 
+ * 
+ * TROUBLESHOOTING:
+ * ─────────────────────────────────────────────────────────────────
+ * 
+ * Problem: Can't connect to Wi-Fi
+ * Fix: Check SSID/password, ensure 2.4GHz network
+ * 
+ * Problem: LED not changing color
+ * Fix: Verify pins in Settings page, test with "Test LED" button
+ * 
+ * Problem: API connection fails (red blink)
+ * Fix: Check vMix IP, port, and API key are correct
+ * 
+ * Problem: Settings page won't load
+ * Fix: Ensure device is connected to Wi-Fi (check Serial Monitor)
+ * 
+ * Problem: Arduino IDE won't find COM port
+ * Fix: Install CH340 driver, restart IDE, try different USB cable
+ * 
+ * 
+ * VIMIX SETUP:
+ * ─────────────────────────────────────────────────────────────────
+ * 1. In vMix: Click "Settings" (icon in top right)
+ * 2. Go to: "Output" → "Web"
+ * 3. Enable "Tally Light" checkbox
+ * 4. Copy the API Key shown (it's your unique identifier)
+ * 5. Enter this key when configuring Tally Light device
+ * 
+ * 
+ * API RESPONSE FORMAT:
+ * ─────────────────────────────────────────────────────────────────
+ * URL: http://192.168.1.72:8088/tallyupdate/?key=ABC&state=%23ff8c00
+ * 
+ * The "state" parameter contains hex color:
+ * #FF0000 = Red (on-air)
+ * #00FF00 = Green (preview)
+ * #000000 = Black (off)
+ * #FFFF00 = Yellow (custom)
+ * 
+ * Device extracts this color and displays it on RGB LED
+ * 
+ * 
+ * DEFAULT VALUES:
+ * ─────────────────────────────────────────────────────────────────
+ * Polling interval: 500 ms
+ * Fade duration: 300 ms
+ * Reset button hold: 3 seconds
+ * AP SSID prefix: "Tally-Config-"
+ * AP password: "tally12345"
+ * 
+ * 
+ * PERSISTENCE:
+ * ─────────────────────────────────────────────────────────────────
+ * All settings stored in device flash memory:
+ • Wi-Fi SSID & password
+ * • LED pin configuration
+ * • API endpoint settings
+ * • Polling interval
+ * • LED cathode type
+ * 
+ * Settings survive power loss and device reboot
+ * 
+ * 
+ * ADVANCED:
+ * ─────────────────────────────────────────────────────────────────
+ * To disable serial debug:
+ *   Edit line ~180: const bool ENABLE_SERIAL_DEBUG = false;
+ * 
+ * To change default pins:
+ *   Edit lines ~60-63 (constants section)
+ * 
+ * To adjust fade duration:
+ *   Edit line ~75: const uint32_t DEFAULT_FADE_DURATION = 300;
+ * 
+ * To add custom features:
+ *   See code comments in Tally.ino (well-documented)
+ * 
+ * 
+ * COMPATIBILITY:
+ * ─────────────────────────────────────────────────────────────────
+ * ESP32:
+ * - 240 MHz dual-core processor
+ * - 320 KB RAM
+ * - Better performance, more pins
+ * 
+ * ESP8266:
+ * - 80 MHz single-core processor
+ * - 160 KB RAM
+ * - Works but slower, fewer pins
+ * - Recommended: Use ESP32 for best experience
+ * 
+ * 
+ * POWER CONSUMPTION:
+ * ─────────────────────────────────────────────────────────────────
+ * Idle (no LED): ~80 mA
+ * Full brightness white LED: ~300 mA
+ * With Wi-Fi polling: +5 mA
+ * 
+ * Recommended power supply: 1A @ 5V minimum
+ * 
+ * 
+ * GET DEVICE IP ADDRESS:
+ * ─────────────────────────────────────────────────────────────────
+ * Method 1 (Serial Monitor):
+ *   Open Serial Monitor → Look for: "[WiFi] Connected! IP: 192.168.x.x"
+ * 
+ * Method 2 (Router):
+ *   Check your Wi-Fi router's connected devices list
+ *   Look for device named "Tally Light" or with ESP32 MAC address
+ * 
+ * Method 3 (mDNS):
+ *   Try http://tally.local/settings in browser
+ *   (if your network supports mDNS)
+ * 
+ * 
+ * RESET FACTORY DEFAULTS:
+ * ─────────────────────────────────────────────────────────────────
+ * • Hold RESET BUTTON ≥ 3 seconds
+ * • LED blinks red 3 times
+ * • All settings reset to defaults
+ * • Device enters AP mode
+ * 
+ * 
+ * LIBRARY DEPENDENCIES:
+ * ─────────────────────────────────────────────────────────────────
+ * Must install via Arduino IDE Library Manager:
+ * 1. ESPAsyncWebServer (by Me-No-Dev)
+ * 2. AsyncTCP (by Me-No-Dev) - ESP32 only
+ * 
+ * Built-in (no install needed):
+ * • WiFi
+ * • Preferences
+ * • HTTPClient
+ * 
+ * 
+ * FILE LOCATIONS:
+ * ─────────────────────────────────────────────────────────────────
+ * Arduino IDE sketches:
+ * Windows: Documents\Arduino\
+ * Mac: ~/Documents/Arduino/
+ * Linux: ~/Arduino/
+ * 
+ * ESP32 Board Config: Tally/Tally.ino
+ * README: Tally/README.md
+ * Setup Guide: Tally/SETUP_GUIDE.txt (this file)
+ * 
+ * 
+ * SECURE YOUR DEVICE:
+ * ─────────────────────────────────────────────────────────────────
+ * For untrusted networks, consider:
+ * • Using firewall rules to block external access to ports 80, 8088
+ * • Placing device on isolated VLAN
+ * • Using HTTPS with certificate pinning for API calls
+ * • Changing AP password (edit code if needed)
+ * 
+ * Currently:
+ * • Web interface: No authentication (assumes trusted local network)
+ * • API calls: Plain HTTP (no HTTPS)
+ * • AP mode: Static password
+ * 
+ * 
+ * PERFORMANCE NOTES:
+ * ─────────────────────────────────────────────────────────────────
+ * • LED fade updates: 16ms (60 FPS)
+ * • Button debounce: 20ms
+ * • Wi-Fi check: 1 second
+ * • API polling: 500ms (configurable)
+ * • Memory: ~50 KB used, plenty left for features
+ * • Flash: ~400 KB code + 50 KB data
+ * 
+ * 
+ * HARDWARE WIRING EXAMPLE:
+ * ─────────────────────────────────────────────────────────────────
+ *
+ *                    ESP32 Dev Module
+ *     ┌─────────────────────────────────────────────┐
+ *     │                                             │
+ *     │ GND ●─────────────────┬───────────────┐    │
+ *     │                       │               │    │
+ *     │ GPIO25 ●───[220Ω]─────┤ Red   (LED+)  │    │
+ *     │                       │               │    │
+ *     │ GPIO26 ●───[220Ω]─────┤ Green (LED+)  │    │
+ *     │                       │               │    │
+ *     │ GPIO27 ●───[220Ω]─────┤ Blue  (LED+)  │    │
+ *     │                       │               │    │
+ *     │                       └───────────────┘    │
+ *     │                       (Common Cathode)    │
+ *     │                                            │
+ *     │ GPIO34 ●──[10kΩ]─●──Button──GND          │
+ *     │                 │                         │
+ *     │ GND ───────────┘                          │
+ *     │                                            │
+ *     │ 5V ●─────────── USB/Power Supply 5V      │
+ *     │ GND ●─────────── USB/Power Supply GND    │
+ *     └─────────────────────────────────────────────┘
+ *
+ * 
+ * GETTING HELP:
+ * ─────────────────────────────────────────────────────────────────
+ * 1. Check Serial Monitor output (115200 baud)
+ * 2. Review README.md for detailed documentation
+ * 3. See SETUP_GUIDE.txt for troubleshooting steps
+ * 4. Verify hardware wiring against examples above
+ * 5. Check vMix API is enabled and responding
+ * 6. Verify Wi-Fi network is 2.4GHz (ESP8266 limitation)
+ * 
+ * 
+ * VERSION & DATE:
+ * ─────────────────────────────────────────────────────────────────
+ * Tally Light v1.0
+ * Released: April 23, 2026
+ * Last Updated: April 23, 2026
+ * 
+ * 
+ * HAPPY TALLY LIGHTING! 🎬📡💡
+ * ─────────────────────────────────────────────────────────────────
+ */
