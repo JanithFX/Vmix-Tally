@@ -1,13 +1,13 @@
 #include <ESP8266WiFi.h>
 
 // --- Configuration ---
-const char* ssid     = "IGE/GLK Production 1";
-const char* password = "glk@1212#1";
+const char* ssid     = "SSID HERE";
+const char* password = "PASSWORD HERE";
 const char* vmixIp   = "192.168.1.72"; // The IP of your vMix PC
 const int vmixPort   = 8099;
 
 // Which input number to track
-const int targetInputIndex = 26; 
+const int targetInputIndex = 24; 
 
 WiFiClient client;
 
