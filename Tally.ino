@@ -1,13 +1,22 @@
 #include <ESP8266WiFi.h>
+#include <IPAddress.h>
 
-// --- Configuration ---
-const char* ssid     = "SSID HERE";
-const char* password = "PASSWORD HERE";
-const char* vmixIp   = "192.168.1.72"; // The IP of your vMix PC
+// --- WiFi Configuration ---
+const char* ssid     = "YOUR SSID";
+const char* password = "YOUR PASSWORD";
+
+// --- Static IP ---
+IPAddress local_IP(192, 168, 1, 118);   // Choose a free IP
+IPAddress gateway(192, 168, 1, 3);       // Router IP
+IPAddress subnet(255, 255, 255, 0);
+IPAddress dns(8, 8, 8, 8);
+
+// --- vMix Configuration ---
+const char* vmixIp   = "192.168.1.72"; // vMix PC IP
 const int vmixPort   = 8099;
 
 // Which input number to track
-const int targetInputIndex = 24; 
+const int targetInputIndex = 18;
 
 WiFiClient client;
 
@@ -30,18 +39,27 @@ void setup() {
   digitalWrite(ledLivePin, LOW);
   digitalWrite(ledPreviewPin, LOW);
 
-  // Connect to WiFi
   Serial.println();
   Serial.print("Connecting to ");
   Serial.println(ssid);
+
+  // Apply static IP
+  if (!WiFi.config(local_IP, gateway, subnet, dns)) {
+    Serial.println("STA Failed to configure");
+  }
+
   WiFi.begin(ssid, password);
 
+  // Wait for connection
   while (WiFi.status() != WL_CONNECTED) {
     delay(500);
     Serial.print(".");
   }
 
   Serial.println("\nWiFi connected");
+  Serial.print("ESP IP Address: ");
+  Serial.println(WiFi.localIP());
+
   connectToVmix();
 }
 
@@ -101,5 +119,5 @@ void parseTally(String tallyLine) {
       Serial.println("PREVIEW");
       digitalWrite(ledPreviewPin, HIGH);
     }
-  } 
+  }
 }
