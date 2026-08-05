@@ -2,12 +2,12 @@
 #include <IPAddress.h>
 
 // --- WiFi Configuration ---
-const char* ssid     = "YOUR SSID";
-const char* password = "YOUR PASSWORD";
+const char* ssid     = "YOUR SSID";       // YOUR WIFI SSID
+const char* password = "YOUR PASSWORD";   // YOUR WIFI PASSWORD
 
 // --- Static IP ---
-IPAddress local_IP(192, 168, 1, 118);   // Choose a free IP
-IPAddress gateway(192, 168, 1, 3);       // Router IP
+IPAddress local_IP(192, 168, 1, 118);   // Choose a free IP for Tally
+IPAddress gateway(192, 168, 1, 3);       // Router IP OR Gateway
 IPAddress subnet(255, 255, 255, 0);
 IPAddress dns(8, 8, 8, 8);
 
@@ -16,7 +16,7 @@ const char* vmixIp   = "192.168.1.72"; // vMix PC IP
 const int vmixPort   = 8099;
 
 // Which input number to track
-const int targetInputIndex = 18;
+const int targetInputIndex = 18;  // Vmix Sournce Number
 
 WiFiClient client;
 
